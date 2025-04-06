@@ -13,7 +13,15 @@
 </head>
 <body>
     <h1>Rhythm Game</h1>
-    <div id="game"></div>
+    <div id="game">
+       <div id="hit-line"></div>
+    </div>
+       <div id="touch-controls">
+       <button data-lane="0">◀</button>
+       <button data-lane="1">▲</button>
+       <button data-lane="2">▼</button>
+       <button data-lane="3">▶</button>
+    </div>
     <div id="score">Score: 0 | Miss: 0</div>
     <script>
         const game = document.getElementById("game");
@@ -65,7 +73,7 @@
             if (lane >= 0) {
                 for (let i = 0; i < notes.length; i++) {
                     const note = notes[i];
-                    if (parseInt(note.style.top) > 540 && parseInt(note.style.top) < 580 && parseInt(note.dataset.lane) === lane) {
+                    if (parseInt(note.style.top) > 540 && parseInt(note.style.top) <              580 && parseInt(note.dataset.lane) === lane) {
                         score++;
                         game.removeChild(note);
                         notes.splice(i, 1);
@@ -74,7 +82,21 @@
                 }
             }
         });
-
+      
+        document.querySelectorAll("#touch-controls button").forEach(btn => {
+            btn.addEventListener("click", () => {
+            const lane = parseInt(btn.dataset.lane);
+              for (let i = 0; i < notes.length; i++) {
+                 const note = notes[i];
+                 if (parseInt(note.style.top) > 540 && parseInt(note.style.top) < 580 && parseInt(note.dataset.lane) === lane) {
+                score++;
+                game.removeChild(note);
+                notes.splice(i, 1);
+                break;
+            }
+        }
+    });
+});
         setInterval(spawnNote, 800);
         setInterval(update, 20);
     </script>

@@ -7,151 +7,154 @@
         body {
             margin: 0;
             background: #111;
-            color: white;
             font-family: sans-serif;
+            color: white;
             text-align: center;
         }
+
+        h1 {
+            margin-top: 10px;
+        }
+
         #game {
-            width: 400px;
-            height: 800px;
+            width: 100%;
+            max-width: 360px;
+            height: 600px;
             margin: 20px auto;
             position: relative;
             background: #222;
-            border: 5px solid #555;
+            border: 4px solid #555;
             display: flex;
+            overflow: hidden;
         }
+
         .lane {
             flex: 1;
-            border-left: 1px solid #444;
-            border-right: 1px solid #444;
             position: relative;
+            border-left: 1px solid #333;
+            border-right: 1px solid #333;
+            touch-action: manipulation;
         }
+
         .note {
-            width: 100%;
-            height: 20px;
             position: absolute;
+            width: 80%;
+            left: 10%;
+            height: 18px;
+            background: cyan;
             top: 0;
-            background: #0ff;
-            border-radius: 10px;
+            border-radius: 5px;
         }
-        .note.hit {
-            animation: hit-flash 0.3s ease-out;
-        }
-        #hit-line {
+
+        .hit-line {
             position: absolute;
-            bottom: 40px;
+            bottom: 60px;
             width: 100%;
-            height: 2px;
+            height: 4px;
             background: red;
+            z-index: 2;
         }
+
         #feedback {
-            margin-top: 10px;
             font-size: 24px;
+            font-weight: bold;
+            margin-top: 10px;
             height: 30px;
         }
+
         #score {
-            margin-top: 10px;
-            font-size: 18px;
-        }
-        @keyframes hit-flash {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.5); opacity: 0.6; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-        @keyframes miss-flash {
-            0% { background: #f00; }
-            50% { background: #900; }
-            100% { background: #222; }
-        }
-        #game.miss {
-            animation: miss-flash 0.4s ease;
+            margin-top: 5px;
         }
     </style>
 </head>
 <body>
     <h1>Rhythm Game</h1>
     <div id="game">
-        <div class="lane" data-lane="0"></div>
-        <div class="lane" data-lane="1"></div>
-        <div class="lane" data-lane="2"></div>
-        <div class="lane" data-lane="3"></div>
-        <div id="hit-line"></div>
+        <div class="lane" onclick="handleHit(0)"></div>
+        <div class="lane" onclick="handleHit(1)"></div>
+        <div class="lane" onclick="handleHit(2)"></div>
+        <div class="lane" onclick="handleHit(3)"></div>
+        <div class="hit-line"></div>
     </div>
     <div id="feedback"></div>
     <div id="score">Score: 0</div>
 
-    <!-- Suara -->
-    <audio id="sound-perfect" src="{{ url_for('static', filename='sounds/perfect.mp3') }}"></audio>
-    <audio id="sound-great" src="{{ url_for('static', filename='sounds/great.mp3') }}"></audio>
-    <audio id="sound-good" src="{{ url_for('static', filename='sounds/good.mp3') }}"></audio>
-    <audio id="sound-miss" src="{{ url_for('static', filename='sounds/miss.mp3') }}"></audio>
-
     <script>
-        const game = document.getElementById("game");
         const lanes = document.querySelectorAll(".lane");
+        const game = document.getElementById("game");
         const feedback = document.getElementById("feedback");
         const scoreDisplay = document.getElementById("score");
-        const sfx = {
-            perfect: document.getElementById("sound-perfect"),
-            great: document.getElementById("sound-great"),
-            good: document.getElementById("sound-good"),
-            miss: document.getElementById("sound-miss")
-        };
-
-        let notes = [];
+        let notes = [[], [], [], []];
         let score = 0;
         let speed = 2;
+        let interval = 1200;
 
         function spawnNote() {
-            const laneIndex = Math.floor(Math.random() * 4);
+            const lane = Math.floor(Math.random() * 4);
             const note = document.createElement("div");
             note.className = "note";
-            note.style.left = `${laneIndex * 25}%`;
-            note.style.top = "0px";
-            note.dataset.lane = laneIndex;
-            game.appendChild(note);
-            notes.push(note);
-        }
+            game.children[lane].appendChild(note);
+            notes[lane].push(note);
 
-        function moveNotes() {
-            for (let i = notes.length - 1; i >= 0; i--) {
-                const note = notes[i];
-                const top = parseInt(note.style.top);
-                note.style.top = `${top + speed}px`;
-
-                if (top > 800) {
-                    showFeedback("Miss", "red");
-                    sfx.miss.play();
-                    game.classList.add("miss");
-                    setTimeout(() => game.classList.remove("miss"), 300);
-                    game.removeChild(note);
-                    notes.splice(i, 1);
-                }
+            // Meningkatkan kecepatan setiap 10 skor
+            if (score > 0 && score % 10 === 0) {
+                speed += 0.3;
+                interval = Math.max(400, interval - 40);
+                clearInterval(noteSpawner);
+                noteSpawner = setInterval(spawnNote, interval);
             }
         }
 
         function handleHit(lane) {
-            for (let i = 0; i < notes.length; i++) {
-                const note = notes[i];
-                const top = parseInt(note.style.top);
-                if (parseInt(note.dataset.lane) === lane) {
-                    const diff = Math.abs(top - 760);
-                    if (diff < 30) {
-                        showFeedback("Perfect", "#0ff"); score += 2; sfx.perfect.play();
-                    } else if (diff < 60) {
-                        showFeedback("Great", "#6f6"); score += 1; sfx.great.play();
-                    } else if (diff < 90) {
-                        showFeedback("Good", "#ff6"); score += 0.5; sfx.good.play();
-                    } else continue;
+            if (notes[lane].length === 0) return;
 
-                    note.classList.add("hit");
-                    setTimeout(() => game.removeChild(note), 300);
-                    notes.splice(i, 1);
+            const note = notes[lane][0];
+            const rect = note.getBoundingClientRect();
+            const gameRect = game.getBoundingClientRect();
+            const hitY = rect.top + rect.height;
+            const hitZone = gameRect.bottom - 60;
 
-                    if (Math.floor(score) % 10 === 0) speed += 0.5;
+            const diff = Math.abs(hitY - hitZone);
 
-                    updateScore();
-                    break;
+            if (diff < 20) {
+                showFeedback("Perfect", "#0f0");
+                playSound("perfect");
+                score += 3;
+            } else if (diff < 40) {
+                showFeedback("Great", "#0ff");
+                playSound("great");
+                score += 1;
+            } else {
+                showFeedback("Miss", "#f00");
+                playSound("miss");
+                return;
+            }
+
+            game.children[lane].removeChild(note);
+            notes[lane].shift();
+            scoreDisplay.textContent = "Score: " + score;
+        }
+
+        function moveNotes() {
+            for (let lane = 0; lane < 4; lane++) {
+                for (let i = 0; i < notes[lane].length; i++) {
+                    const note = notes[lane][i];
+                    const top = parseFloat(note.style.top || "0");
+                    note.style.top = top + speed + "px";
+
+                    if (top > 550) {
+                        game.children[lane].removeChild(note);
+                        notes[lane].shift();
+                        showFeedback("Miss", "#f00");
+                        playSound("miss");
+                        score -= 2;
+                        scoreDisplay.textContent = "Score: " + score;
+
+                        if (score < 0) {
+                            alert("Game Over!");
+                            window.location.reload();
+                        }
+                    }
                 }
             }
         }
@@ -159,24 +162,18 @@
         function showFeedback(text, color) {
             feedback.textContent = text;
             feedback.style.color = color;
-            setTimeout(() => feedback.textContent = "", 400);
+            feedback.style.opacity = 1;
+            setTimeout(() => feedback.style.opacity = 0, 500);
         }
 
-        function updateScore() {
-            scoreDisplay.textContent = "Score: " + Math.floor(score);
+        function playSound(type) {
+            const audio = new Audio(`/static/sounds/${type}.mp3`);
+            audio.volume = 0.4;
+            audio.play();
         }
 
-        // Keyboard & Touch input
-        document.addEventListener("keydown", e => {
-            if (e.key >= '1' && e.key <= '4') handleHit(parseInt(e.key) - 1);
-        });
-
-        lanes.forEach((lane, idx) => {
-            lane.addEventListener("touchstart", () => handleHit(idx));
-        });
-
-        setInterval(spawnNote, 1000);
-        setInterval(moveNotes, 20);
+        let noteSpawner = setInterval(spawnNote, interval);
+        setInterval(moveNotes, 16);
     </script>
 </body>
 </html>

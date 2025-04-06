@@ -18,6 +18,11 @@ def index():
         return render_template("result.html", name=name, percentage=percentage)
     return render_template("index.html")
 
+# Route ke rhythm game
+@app.route("/rhythm-game")
+def rhythm_game():
+    return render_template("rhythm.html")
+
 import os
 
 if __name__ == "__main__":

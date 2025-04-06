@@ -12,21 +12,41 @@
         <div class="progress-bar">
             <div class="fill" id="fill-bar"></div>
         </div>
+        <p id="dynamic-text" style="margin-top: 15px; font-weight: bold;"></p>
         <a href="/" class="btn">Coba lagi</a>
         <a href="https://www.facebook.com/sharer/sharer.php?u=https://example.com" class="btn facebook" target="_blank">Kirim ke fesnuk(eses dulu)</a>
         <p class="credit">Dibuat oleh <strong>Mafatikhul Huda</strong></p>
     </div>
     <script>
-        // Animate the progress bar
         const fillBar = document.getElementById('fill-bar');
+        const textEl = document.getElementById('dynamic-text');
         let percentage = {{ percentage }};
         let width = 0;
+    
+        const messages = [
+            { limit: 20, text: "Saran Teks(<20%, >=0%)" },
+            { limit: 40, text: "Saran Teks(<40%, >20%)" },
+            { limit: 60, text: "Saran Teks(<60%, >40%)" },
+            { limit: 80, text: "Saran Teks(<80%, >60%)" },
+            { limit: 100, text: "Saran Teks(<100%, >80%)" }
+        ];
+    
+        function updateText(current) {
+            for (let i = 0; i < messages.length; i++) {
+                if (current <= messages[i].limit) {
+                    textEl.textContent = messages[i].text;
+                    break;
+                }
+            }
+        }
+    
         let interval = setInterval(() => {
             if (width >= percentage) {
                 clearInterval(interval);
             } else {
-                width+= 0.4;
+                width += 0.4;
                 fillBar.style.width = width + "%";
+                updateText(width);
             }
         }, 10);
     </script>

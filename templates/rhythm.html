@@ -12,8 +12,8 @@
         }
         #game {
             position: relative;
-            width: 300px;
-            height: 600px;
+            width: 360px;
+            height: 700px;
             margin: 0 auto;
             background: #222;
             border: 2px solid #555;
@@ -21,39 +21,42 @@
         }
         .note {
             position: absolute;
-            width: 70px;
-            height: 20px;
+            width: 90px;
+            height: 25px;
             background: #0f0;
         }
         .lane {
             position: absolute;
-            width: 70px;
-            height: 600px;
+            width: 90px;
+            height: 700px;
             top: 0;
+            border-left: 1px solid #555;
+        }
+        .lane:first-child {
+            border-left: none;
         }
         #score, #feedback {
-            margin-top: 10px;
-            font-size: 24px;
+            margin-top: 15px;
+            font-size: 26px;
         }
         #feedback {
             font-weight: bold;
-            height: 30px;
-            color: white;
+            height: 40px;
             text-shadow: 2px 2px 4px black;
         }
         #touch-controls {
             display: flex;
             justify-content: center;
-            gap: 10px;
+            gap: 15px;
             margin-top: 20px;
         }
         #touch-controls button {
-            padding: 20px;
-            font-size: 24px;
+            padding: 25px 30px;
+            font-size: 28px;
             background: #444;
             color: white;
             border: none;
-            border-radius: 10px;
+            border-radius: 12px;
         }
         #touch-controls button:active {
             background: #666;
@@ -63,7 +66,7 @@
             bottom: 40px;
             left: 0;
             width: 100%;
-            height: 2px;
+            height: 3px;
             background: white;
             z-index: 10;
         }
@@ -87,7 +90,7 @@
     <script>
         const game = document.getElementById("game");
         const lanes = 4;
-        const laneWidth = 70;
+        const laneWidth = 90;
         const notes = [];
         let score = 0;
         let miss = 0;
@@ -117,7 +120,7 @@
                 let top = parseInt(note.style.top);
                 top += speed;
                 note.style.top = `${top}px`;
-                if (top > 600) {
+                if (top > 700) {
                     game.removeChild(note);
                     notes.splice(i, 1);
                     i--;
@@ -146,7 +149,7 @@
                 const note = notes[i];
                 const top = parseInt(note.style.top);
                 if (parseInt(note.dataset.lane) === lane) {
-                    const diff = Math.abs(top - 560);
+                    const diff = Math.abs(top - 660); // hit-line: 700 - 40
                     if (diff < 15) {
                         showFeedback("Perfect", "#00ffcc");
                         score += 2;

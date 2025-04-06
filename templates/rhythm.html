@@ -13,8 +13,8 @@
         }
         #game {
             margin: 20px auto;
-            width: 400px;
-            height: 600px;
+            width: 600px;  /* Ubah dari 400px ke 600px */
+            height: 800px; /* Ubah dari 600px ke 800px */
             background: #222;
             position: relative;
             border: 4px solid white;
@@ -37,7 +37,7 @@
         }
         .hit-line {
             position: absolute;
-            bottom: 100px;
+            bottom: 120px; /* Ubah dari 100px ke 120px */
             height: 4px;
             background: red;
             width: 100%;
@@ -48,9 +48,9 @@
         }
         .buttons button {
             width: 22%;
-            height: 50px;
+            height: 70px; /* Ubah dari 50px ke 70px */
             margin: 1%;
-            font-size: 20px;
+            font-size: 24px; /* Ubah dari 20px ke 24px */
             border-radius: 10px;
             border: none;
             background: #444;
@@ -58,9 +58,9 @@
         }
         #feedback {
             margin-top: 10px;
-            font-size: 24px;
+            font-size: 32px; /* Ubah dari 24px ke 32px */
             font-weight: bold;
-            height: 30px;
+            height: 40px; /* Ubah dari 30px ke 40px */
         }
         #score, #misses {
             margin-top: 10px;
@@ -119,7 +119,7 @@
                 top += gameSpeed;
                 note.style.top = top + 'px';
 
-                if (top > 600) {
+                if (top > 800) { // Ubah dari 600 ke 800
                     if (note.parentElement) note.parentElement.removeChild(note);
                     notes.splice(index, 1);
                     addMiss();
@@ -133,7 +133,7 @@
                 const note = notes[i];
                 if (parseInt(note.dataset.lane) === lane) {
                     const top = parseInt(note.style.top);
-                    const distance = Math.abs(top - 500);
+                    const distance = Math.abs(top - 680); // Ubah dari 500 ke 680
                     if (distance < 40) {
                         hitNote = note;
                         if (distance < 10) {

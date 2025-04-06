@@ -5,145 +5,129 @@
     <title>Rhythm Game</title>
     <style>
         body {
+            margin: 0;
             background: #111;
             color: white;
             font-family: sans-serif;
             text-align: center;
         }
         #game {
-            position: relative;
-            width: 480px;
+            width: 400px;
             height: 800px;
-            margin: 0 auto;
+            margin: 20px auto;
+            position: relative;
             background: #222;
-            border: 3px solid #555;
-            overflow: hidden;
-        }
-        .note {
-            position: absolute;
-            width: 120px;
-            height: 30px;
-            background: #0f0;
-            border-radius: 10px;
+            border: 5px solid #555;
+            display: flex;
         }
         .lane {
+            flex: 1;
+            border-left: 1px solid #444;
+            border-right: 1px solid #444;
+            position: relative;
+        }
+        .note {
+            width: 100%;
+            height: 20px;
             position: absolute;
-            width: 120px;
-            height: 800px;
             top: 0;
-            border-left: 1px solid #666;
+            background: #0ff;
+            border-radius: 10px;
         }
-        .lane:first-child {
-            border-left: none;
-        }
-        #score, #feedback {
-            margin-top: 15px;
-            font-size: 28px;
-        }
-        #feedback {
-            font-weight: bold;
-            height: 40px;
-            text-shadow: 2px 2px 4px black;
-        }
-        #touch-controls {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin-top: 25px;
-            flex-wrap: wrap;
-        }
-        #touch-controls button {
-            padding: 30px 35px;
-            font-size: 32px;
-            background: #444;
-            color: white;
-            border: none;
-            border-radius: 14px;
-        }
-        #touch-controls button:active {
-            background: #666;
+        .note.hit {
+            animation: hit-flash 0.3s ease-out;
         }
         #hit-line {
             position: absolute;
             bottom: 40px;
-            left: 0;
             width: 100%;
-            height: 4px;
-            background: white;
-            z-index: 10;
+            height: 2px;
+            background: red;
+        }
+        #feedback {
+            margin-top: 10px;
+            font-size: 24px;
+            height: 30px;
+        }
+        #score {
+            margin-top: 10px;
+            font-size: 18px;
+        }
+        @keyframes hit-flash {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.5); opacity: 0.6; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes miss-flash {
+            0% { background: #f00; }
+            50% { background: #900; }
+            100% { background: #222; }
+        }
+        #game.miss {
+            animation: miss-flash 0.4s ease;
         }
     </style>
 </head>
 <body>
     <h1>Rhythm Game</h1>
     <div id="game">
+        <div class="lane" data-lane="0"></div>
+        <div class="lane" data-lane="1"></div>
+        <div class="lane" data-lane="2"></div>
+        <div class="lane" data-lane="3"></div>
         <div id="hit-line"></div>
     </div>
-    <div id="score">Score: 0 | Miss: 0</div>
     <div id="feedback"></div>
+    <div id="score">Score: 0</div>
 
-    <div id="touch-controls">
-        <button data-lane="0">◀</button>
-        <button data-lane="1">▲</button>
-        <button data-lane="2">▼</button>
-        <button data-lane="3">▶</button>
-    </div>
+    <!-- Suara -->
+    <audio id="sound-perfect" src="{{ url_for('static', filename='sounds/perfect.mp3') }}"></audio>
+    <audio id="sound-great" src="{{ url_for('static', filename='sounds/great.mp3') }}"></audio>
+    <audio id="sound-good" src="{{ url_for('static', filename='sounds/good.mp3') }}"></audio>
+    <audio id="sound-miss" src="{{ url_for('static', filename='sounds/miss.mp3') }}"></audio>
 
     <script>
         const game = document.getElementById("game");
-        const lanes = 4;
-        const laneWidth = 120;
-        const notes = [];
+        const lanes = document.querySelectorAll(".lane");
+        const feedback = document.getElementById("feedback");
+        const scoreDisplay = document.getElementById("score");
+        const sfx = {
+            perfect: document.getElementById("sound-perfect"),
+            great: document.getElementById("sound-great"),
+            good: document.getElementById("sound-good"),
+            miss: document.getElementById("sound-miss")
+        };
+
+        let notes = [];
         let score = 0;
-        let miss = 0;
         let speed = 2;
 
-        for (let i = 0; i < lanes; i++) {
-            const lane = document.createElement("div");
-            lane.className = "lane";
-            lane.style.left = `${i * laneWidth}px`;
-            game.appendChild(lane);
-        }
-
         function spawnNote() {
-            const lane = Math.floor(Math.random() * lanes);
+            const laneIndex = Math.floor(Math.random() * 4);
             const note = document.createElement("div");
             note.className = "note";
-            note.style.left = `${lane * laneWidth}px`;
+            note.style.left = `${laneIndex * 25}%`;
             note.style.top = "0px";
-            note.dataset.lane = lane;
+            note.dataset.lane = laneIndex;
             game.appendChild(note);
             notes.push(note);
         }
 
-        function update() {
-            for (let i = 0; i < notes.length; i++) {
+        function moveNotes() {
+            for (let i = notes.length - 1; i >= 0; i--) {
                 const note = notes[i];
-                let top = parseInt(note.style.top);
-                top += speed;
-                note.style.top = `${top}px`;
+                const top = parseInt(note.style.top);
+                note.style.top = `${top + speed}px`;
+
                 if (top > 800) {
+                    showFeedback("Miss", "red");
+                    sfx.miss.play();
+                    game.classList.add("miss");
+                    setTimeout(() => game.classList.remove("miss"), 300);
                     game.removeChild(note);
                     notes.splice(i, 1);
-                    i--;
-                    miss++;
-                    showFeedback("Miss", "#ff4444");
-                    updateScore();
                 }
             }
-        }
-
-        function updateScore() {
-            document.getElementById("score").textContent = `Score: ${Math.floor(score)} | Miss: ${miss}`;
-        }
-
-        function showFeedback(text, color) {
-            const feedback = document.getElementById("feedback");
-            feedback.textContent = text;
-            feedback.style.color = color;
-            setTimeout(() => {
-                feedback.textContent = "";
-            }, 500);
         }
 
         function handleHit(lane) {
@@ -151,47 +135,48 @@
                 const note = notes[i];
                 const top = parseInt(note.style.top);
                 if (parseInt(note.dataset.lane) === lane) {
-                    const diff = Math.abs(top - 760); // hit-line at bottom - 40
+                    const diff = Math.abs(top - 760);
                     if (diff < 30) {
-                        showFeedback("Perfect", "#00ffcc");
-                        score += 2;
+                        showFeedback("Perfect", "#0ff"); score += 2; sfx.perfect.play();
                     } else if (diff < 60) {
-                        showFeedback("Great", "#66ff66");
-                        score += 1;
+                        showFeedback("Great", "#6f6"); score += 1; sfx.great.play();
                     } else if (diff < 90) {
-                        showFeedback("Good", "#ffff66");
-                        score += 0.5;
-                    } else {
-                        continue;
-                    }
+                        showFeedback("Good", "#ff6"); score += 0.5; sfx.good.play();
+                    } else continue;
 
-                    if (Math.floor(score) % 10 === 0) {
-                        speed += 0.5;
-                    }
-
-                    game.removeChild(note);
+                    note.classList.add("hit");
+                    setTimeout(() => game.removeChild(note), 300);
                     notes.splice(i, 1);
+
+                    if (Math.floor(score) % 10 === 0) speed += 0.5;
+
                     updateScore();
                     break;
                 }
             }
         }
 
+        function showFeedback(text, color) {
+            feedback.textContent = text;
+            feedback.style.color = color;
+            setTimeout(() => feedback.textContent = "", 400);
+        }
+
+        function updateScore() {
+            scoreDisplay.textContent = "Score: " + Math.floor(score);
+        }
+
+        // Keyboard & Touch input
         document.addEventListener("keydown", e => {
-            const keys = ["ArrowLeft", "ArrowUp", "ArrowDown", "ArrowRight"];
-            const lane = keys.indexOf(e.key);
-            if (lane >= 0) handleHit(lane);
+            if (e.key >= '1' && e.key <= '4') handleHit(parseInt(e.key) - 1);
         });
 
-        document.querySelectorAll("#touch-controls button").forEach(btn => {
-            btn.addEventListener("click", () => {
-                const lane = parseInt(btn.dataset.lane);
-                handleHit(lane);
-            });
+        lanes.forEach((lane, idx) => {
+            lane.addEventListener("touchstart", () => handleHit(idx));
         });
 
-        setInterval(spawnNote, 800);
-        setInterval(update, 20);
+        setInterval(spawnNote, 1000);
+        setInterval(moveNotes, 20);
     </script>
 </body>
 </html>

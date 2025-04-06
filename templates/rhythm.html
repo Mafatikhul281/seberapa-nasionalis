@@ -6,186 +6,193 @@
     <style>
         body {
             margin: 0;
-            background: #111;
-            font-family: sans-serif;
+            background-color: #111;
             color: white;
+            font-family: sans-serif;
             text-align: center;
         }
-
-        h1 {
-            margin-top: 10px;
-        }
-
         #game {
-            width: 100%;
-            max-width: 360px;
-            height: 600px;
             margin: 20px auto;
-            position: relative;
+            width: 400px;
+            height: 600px;
             background: #222;
-            border: 4px solid #555;
-            display: flex;
-            overflow: hidden;
-        }
-
-        .lane {
-            flex: 1;
             position: relative;
-            border-left: 1px solid #333;
-            border-right: 1px solid #333;
-            touch-action: manipulation;
+            border: 4px solid white;
         }
-
+        .lane {
+            width: 25%;
+            height: 100%;
+            float: left;
+            position: relative;
+            border-left: 1px solid #555;
+            border-right: 1px solid #555;
+        }
         .note {
-            position: absolute;
             width: 80%;
+            height: 40px;
+            background: #0ff;
+            position: absolute;
             left: 10%;
-            height: 18px;
-            background: cyan;
-            top: 0;
-            border-radius: 5px;
+            border-radius: 10px;
         }
-
         .hit-line {
             position: absolute;
-            bottom: 60px;
-            width: 100%;
+            bottom: 100px;
             height: 4px;
             background: red;
-            z-index: 2;
+            width: 100%;
         }
-
+        .buttons {
+            margin-top: 10px;
+        }
+        .buttons button {
+            width: 22%;
+            height: 50px;
+            margin: 1%;
+            font-size: 20px;
+            border-radius: 10px;
+            border: none;
+            background: #444;
+            color: white;
+        }
         #feedback {
+            margin-top: 10px;
             font-size: 24px;
             font-weight: bold;
-            margin-top: 10px;
             height: 30px;
-            transition: opacity 0.2s;
         }
-
-        #score {
-            margin-top: 5px;
+        #score, #misses {
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
     <h1>Rhythm Game</h1>
     <div id="game">
-        <div class="lane" onclick="handleHit(0)"></div>
-        <div class="lane" onclick="handleHit(1)"></div>
-        <div class="lane" onclick="handleHit(2)"></div>
-        <div class="lane" onclick="handleHit(3)"></div>
         <div class="hit-line"></div>
+        <div class="lane" id="lane0"></div>
+        <div class="lane" id="lane1"></div>
+        <div class="lane" id="lane2"></div>
+        <div class="lane" id="lane3"></div>
     </div>
+
+    <div class="buttons">
+        <button onclick="hit(0)">A</button>
+        <button onclick="hit(1)">S</button>
+        <button onclick="hit(2)">D</button>
+        <button onclick="hit(3)">F</button>
+    </div>
+
     <div id="feedback"></div>
     <div id="score">Score: 0</div>
+    <div id="misses">Misses: 0/10</div>
 
     <script>
-        const lanes = document.querySelectorAll(".lane");
-        const game = document.getElementById("game");
-        const feedback = document.getElementById("feedback");
-        const scoreDisplay = document.getElementById("score");
-        let notes = [[], [], [], []];
+        const lanes = [document.getElementById('lane0'), document.getElementById('lane1'), document.getElementById('lane2'), document.getElementById('lane3')];
+        let notes = [];
         let score = 0;
-        let speed = 2;
-        let interval = 1200;
+        let misses = 0;
+        let gameSpeed = 2;
+        let spawnRate = 1000;
+        let feedbackEl = document.getElementById('feedback');
+        const sounds = {
+            perfect: new Audio('/static/sounds/perfect.mp3'),
+            great: new Audio('/static/sounds/great.mp3'),
+            good: new Audio('/static/sounds/good.mp3'),
+            miss: new Audio('/static/sounds/miss.mp3'),
+        };
 
         function spawnNote() {
             const lane = Math.floor(Math.random() * 4);
-            const note = document.createElement("div");
-            note.className = "note";
-            game.children[lane].appendChild(note);
-            notes[lane].push(note);
-
-            if (score > 0 && score % 10 === 0) {
-                speed += 0.3;
-                interval = Math.max(400, interval - 40);
-                clearInterval(noteSpawner);
-                noteSpawner = setInterval(spawnNote, interval);
-            }
+            const note = document.createElement('div');
+            note.classList.add('note');
+            note.style.top = '0px';
+            note.dataset.lane = lane;
+            lanes[lane].appendChild(note);
+            notes.push(note);
         }
 
-        function handleHit(lane) {
-            if (notes[lane].length === 0) {
-                // Klik kosong, tidak dihitung apa-apa
-                return;
-            }
+        function updateNotes() {
+            notes.forEach((note, index) => {
+                let top = parseInt(note.style.top);
+                top += gameSpeed;
+                note.style.top = top + 'px';
 
-            const note = notes[lane][0];
-            const rect = note.getBoundingClientRect();
-            const gameRect = game.getBoundingClientRect();
-            const hitY = rect.top + rect.height;
-            const hitZone = gameRect.bottom - 60;
-
-            const diff = Math.abs(hitY - hitZone);
-
-            if (diff < 20) {
-                showFeedback("Perfect", "#0f0");
-                playSound("perfect");
-                score += 3;
-            } else if (diff < 40) {
-                showFeedback("Great", "#0ff");
-                playSound("great");
-                score += 2;
-            } else if (diff < 60) {
-                showFeedback("Good", "#ff0");
-                playSound("good");
-                score += 1;
-            } else {
-                showFeedback("Miss", "#f00");
-                playSound("miss");
-                score -= 2;
-            }
-
-            game.children[lane].removeChild(note);
-            notes[lane].shift();
-            scoreDisplay.textContent = "Score: " + score;
-
-            if (score < 0) {
-                alert("Game Over!");
-                window.location.reload();
-            }
+                if (top > 600) {
+                    if (note.parentElement) note.parentElement.removeChild(note);
+                    notes.splice(index, 1);
+                    addMiss();
+                }
+            });
         }
 
-        function moveNotes() {
-            for (let lane = 0; lane < 4; lane++) {
-                for (let i = 0; i < notes[lane].length; i++) {
-                    const note = notes[lane][i];
-                    const top = parseFloat(note.style.top || "0");
-                    note.style.top = top + speed + "px";
-
-                    if (top > 550) {
-                        game.children[lane].removeChild(note);
-                        notes[lane].shift();
-                        showFeedback("Miss", "#f00");
-                        playSound("miss");
-                        score -= 2;
-                        scoreDisplay.textContent = "Score: " + score;
-
-                        if (score < 0) {
-                            alert("Game Over!");
-                            window.location.reload();
+        function hit(lane) {
+            let hitNote = null;
+            for (let i = 0; i < notes.length; i++) {
+                const note = notes[i];
+                if (parseInt(note.dataset.lane) === lane) {
+                    const top = parseInt(note.style.top);
+                    const distance = Math.abs(top - 500);
+                    if (distance < 40) {
+                        hitNote = note;
+                        if (distance < 10) {
+                            score += 300;
+                            showFeedback("Perfect!", "perfect");
+                        } else if (distance < 20) {
+                            score += 200;
+                            showFeedback("Great!", "great");
+                        } else {
+                            score += 100;
+                            showFeedback("Good!", "good");
                         }
+                        note.parentElement.removeChild(note);
+                        notes.splice(i, 1);
+                        document.getElementById('score').innerText = "Score: " + score;
+                        if (score % 1000 === 0) {
+                            gameSpeed += 0.5;
+                        }
+                        return;
                     }
                 }
             }
         }
 
-        function showFeedback(text, color) {
-            feedback.textContent = text;
-            feedback.style.color = color;
-            feedback.style.opacity = 1;
-            setTimeout(() => feedback.style.opacity = 0, 400);
+        function showFeedback(text, soundKey) {
+            feedbackEl.innerText = text;
+            sounds[soundKey]?.play();
+            setTimeout(() => feedbackEl.innerText = '', 500);
         }
 
-        function playSound(type) {
-            const audio = new Audio(`/static/sounds/${type}.mp3`);
-            audio.volume = 0.4;
-            audio.play();
+        function addMiss() {
+            misses++;
+            document.getElementById('misses').innerText = `Misses: ${misses}/10`;
+            sounds.miss.play();
+            if (misses >= 10) {
+                endGame();
+            }
         }
 
-        let noteSpawner = setInterval(spawnNote, interval);
-        setInterval(moveNotes, 16);
+        function endGame() {
+            clearInterval(gameLoop);
+            clearInterval(spawnLoop);
+            let name = prompt("Game Over! Masukkan namamu:");
+            if (name) {
+                fetch("/submit_score", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ name: name, score: score })
+                }).then(() => {
+                    window.location.href = "/leaderboard";
+                });
+            } else {
+                window.location.href = "/";
+            }
+        }
+
+        const gameLoop = setInterval(updateNotes, 20);
+        const spawnLoop = setInterval(spawnNote, spawnRate);
     </script>
 </body>
 </html>

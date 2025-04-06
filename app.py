@@ -22,8 +22,8 @@ def index():
         return render_template("result.html", name=name, percentage=percentage)
     return render_template("index.html")
 
-@app.route("/rythm")
-def rythm_game():
+@app.route("/rhythm")
+def rhythm_game():
     return render_template("rhythm.html")
 
 @app.route("/submit_score", methods=["POST"])

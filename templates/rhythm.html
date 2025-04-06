@@ -60,6 +60,7 @@
             font-weight: bold;
             margin-top: 10px;
             height: 30px;
+            transition: opacity 0.2s;
         }
 
         #score {
@@ -96,7 +97,6 @@
             game.children[lane].appendChild(note);
             notes[lane].push(note);
 
-            // Meningkatkan kecepatan setiap 10 skor
             if (score > 0 && score % 10 === 0) {
                 speed += 0.3;
                 interval = Math.max(400, interval - 40);
@@ -106,7 +106,10 @@
         }
 
         function handleHit(lane) {
-            if (notes[lane].length === 0) return;
+            if (notes[lane].length === 0) {
+                // Klik kosong, tidak dihitung apa-apa
+                return;
+            }
 
             const note = notes[lane][0];
             const rect = note.getBoundingClientRect();
@@ -123,16 +126,25 @@
             } else if (diff < 40) {
                 showFeedback("Great", "#0ff");
                 playSound("great");
+                score += 2;
+            } else if (diff < 60) {
+                showFeedback("Good", "#ff0");
+                playSound("good");
                 score += 1;
             } else {
                 showFeedback("Miss", "#f00");
                 playSound("miss");
-                return;
+                score -= 2;
             }
 
             game.children[lane].removeChild(note);
             notes[lane].shift();
             scoreDisplay.textContent = "Score: " + score;
+
+            if (score < 0) {
+                alert("Game Over!");
+                window.location.reload();
+            }
         }
 
         function moveNotes() {
@@ -163,7 +175,7 @@
             feedback.textContent = text;
             feedback.style.color = color;
             feedback.style.opacity = 1;
-            setTimeout(() => feedback.style.opacity = 0, 500);
+            setTimeout(() => feedback.style.opacity = 0, 400);
         }
 
         function playSound(type) {

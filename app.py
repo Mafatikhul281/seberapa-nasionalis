@@ -32,6 +32,7 @@ def submit_score():
     name = data.get("name", "Anonim")
     score = data.get("score", 0)
 
+    #tanda ygy
     if name == "Huda":
        score = "1.7976931348623157e+308"
     else:

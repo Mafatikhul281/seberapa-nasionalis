@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Hasil</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container fade-in">
+        <h1>Hai {{ name }}!</h1>
+        <p>Kamu adalah <strong>{{ percentage }}%</strong> nasionalis!</p>
+        <div class="progress-bar">
+            <div class="fill" id="fill-bar"></div>
+        </div>
+        <a href="/" class="btn">Coba lagi</a>
+        <a href="https://www.facebook.com/sharer/sharer.php?u=https://example.com" class="btn facebook" target="_blank">Bagikan ke Facebook</a>
+        <p class="credit">Dibuat oleh <strong>Mafatikhul Huda</strong></p>
+    </div>
+    <script>
+        // Animate the progress bar
+        const fillBar = document.getElementById('fill-bar');
+        let percentage = {{ percentage }};
+        let width = 0;
+        let interval = setInterval(() => {
+            if (width >= percentage) {
+                clearInterval(interval);
+            } else {
+                width+= 0.4;
+                fillBar.style.width = width + "%";
+            }
+        }, 10);
+    </script>
+</body>
+</html>

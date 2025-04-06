@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Leaderboard</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #111;
+            color: white;
+            text-align: center;
+        }
+        table {
+            margin: 20px auto;
+            border-collapse: collapse;
+            width: 90%;
+            max-width: 500px;
+        }
+        th, td {
+            border: 1px solid #555;
+            padding: 10px;
+        }
+        th {
+            background-color: #333;
+        }
+        tr:nth-child(even) {
+            background-color: #222;
+        }
+        a {
+            color: cyan;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Leaderboard Rhythm Game</h1>
+    <table>
+        <tr>
+            <th>Peringkat</th>
+            <th>Nama</th>
+            <th>Skor</th>
+        </tr>
+        {% for entry in leaderboard %}
+        <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ entry.name }}</td>
+            <td>{{ entry.score }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <p><a href="{{ url_for('rythm_game') }}">Main Lagi</a></p>
+    <p><a href="{{ url_for('index') }}">Kembali ke Awal</a></p>
+</body>
+</html>

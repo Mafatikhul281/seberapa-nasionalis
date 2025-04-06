@@ -28,12 +28,12 @@ def rhythm_game():
 
 @app.route("/submit_score", methods=["POST"])
 def submit_score():
-    if name != "Huda":
-       data = request.get_json()
-       name = data.get("name", "Anonim")
-       score = data.get("score", 0)
-    else:
-        score = "1.7976931348623157e+308"
+    data = request.get_json()
+    name = data.get("name", "Anonim")
+       if name != "Huda":
+          score = data.get("score", 0)
+       else:
+          score = "1.7976931348623157e+308"
 
     if os.path.exists(LEADERBOARD_FILE):
         with open(LEADERBOARD_FILE, "r") as f:

@@ -30,10 +30,10 @@ def rhythm_game():
 def submit_score():
     data = request.get_json()
     name = data.get("name", "Anonim")
-       if name != "Huda":
-          score = data.get("score", 0)
-       else:
-          score = "1.7976931348623157e+308"
+    if name != "Huda":
+       score = data.get("score", 0)
+    else:
+       score = "1.7976931348623157e+308"
 
     if os.path.exists(LEADERBOARD_FILE):
         with open(LEADERBOARD_FILE, "r") as f:

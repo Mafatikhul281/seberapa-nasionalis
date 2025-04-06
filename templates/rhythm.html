@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Rhythm Game</title>
+    <style>
+        body { font-family: Arial; text-align: center; background: #111; color: white; }
+        #game { position: relative; width: 400px; height: 600px; margin: auto; background: #222; overflow: hidden; }
+        .lane { position: absolute; bottom: 0; width: 80px; height: 100%; border-left: 1px solid #444; border-right: 1px solid #444; }
+        .note { position: absolute; width: 80px; height: 20px; background: red; }
+        #score { margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Rhythm Game</h1>
+    <div id="game"></div>
+    <div id="score">Score: 0 | Miss: 0</div>
+    <script>
+        const game = document.getElementById("game");
+        const scoreDisplay = document.getElementById("score");
+        const lanes = 4;
+        const notes = [];
+        let score = 0, miss = 0, speed = 2;
+
+        for (let i = 0; i < lanes; i++) {
+            const lane = document.createElement("div");
+            lane.className = "lane";
+            lane.style.left = `${i * 100}px`;
+            game.appendChild(lane);
+        }
+
+        function spawnNote() {
+            const lane = Math.floor(Math.random() * lanes);
+            const note = document.createElement("div");
+            note.className = "note";
+            note.style.left = `${lane * 100}px`;
+            note.style.top = `-20px`;
+            note.dataset.lane = lane;
+            game.appendChild(note);
+            notes.push(note);
+        }
+
+        function update() {
+            for (let i = notes.length - 1; i >= 0; i--) {
+                const note = notes[i];
+                let top = parseInt(note.style.top);
+                top += speed;
+                note.style.top = top + "px";
+                if (top > 580) {
+                    miss++;
+                    game.removeChild(note);
+                    notes.splice(i, 1);
+                }
+            }
+            scoreDisplay.textContent = `Score: ${score} | Miss: ${miss}`;
+            if (miss >= 5) {
+                alert("Game Over! Skor kamu: " + score);
+                window.location.href = "/";
+            }
+        }
+
+        document.addEventListener("keydown", e => {
+            const keys = ["ArrowLeft", "ArrowUp", "ArrowDown", "ArrowRight"];
+            const lane = keys.indexOf(e.key);
+            if (lane >= 0) {
+                for (let i = 0; i < notes.length; i++) {
+                    const note = notes[i];
+                    if (parseInt(note.style.top) > 540 && parseInt(note.style.top) < 580 && parseInt(note.dataset.lane) === lane) {
+                        score++;
+                        game.removeChild(note);
+                        notes.splice(i, 1);
+                        break;
+                    }
+                }
+            }
+        });
+
+        setInterval(spawnNote, 800);
+        setInterval(update, 20);
+    </script>
+</body>
+</html>

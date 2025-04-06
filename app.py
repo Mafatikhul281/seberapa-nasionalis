@@ -33,7 +33,7 @@ def submit_score():
     if name != "Huda":
        score = data.get("score", 0)
     else:
-       score = "1.7976931348623157e+308"
+       score = 179769313486231578887308
 
     if os.path.exists(LEADERBOARD_FILE):
         with open(LEADERBOARD_FILE, "r") as f:
